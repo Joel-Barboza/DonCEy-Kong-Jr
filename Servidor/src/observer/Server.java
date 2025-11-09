@@ -1,12 +1,24 @@
+package observer;
+
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class Server {
+    // singleton instance
     private static Server instance = null;
+    // Observer subscribers
+    private ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
+
+    // server parameters
     private static final int PORT = 8080;
     private ServerSocket serverSocket;
     private boolean isRunning;
 
+
+    //-----------------------------------------------------
+    //                 Singleton server
+    //-----------------------------------------------------
     private Server() {
         System.out.println("Iniciando server");
         isRunning = false;
@@ -19,6 +31,27 @@ public class Server {
         return instance;
     }
 
+
+    //-----------------------------------------------------
+    //                 Observer methods
+    //-----------------------------------------------------
+    public void addSubscriber(Subscriber subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    public void removeSubscriber(Subscriber subscriber) {
+        subscribers.remove(subscriber);
+    }
+
+    public void notifySubscribers() {
+        subscribers.forEach(subscriber -> subscriber.update(new ArrayList<>()));
+    }
+
+
+
+    //-----------------------------------------------------
+    //                 Server methods
+    //-----------------------------------------------------
     public void startServer() {
         if (isRunning) {
             System.out.println("El servidor ya está en ejecución");
@@ -106,7 +139,7 @@ public class Server {
 
 
 //    public static void main(String[] args) {
-//        Server server = Server.getInstance();
+//        observer.Server server = observer.Server.getInstance();
 //        server.startServer();
 //
 //        // server.stopServer();
