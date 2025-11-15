@@ -1,10 +1,13 @@
 import GUI.AdminPanel;
+import GUI.MainScreen;
 import observer.Server;
 
 public class Main {
     public static void main(String[] args) {
-        AdminPanel panel = new AdminPanel();
-        panel.createAndShowGUI();
+//        AdminPanel panel = new AdminPanel();
+//        panel.createAndShowGUI();
+        MainScreen mainScreen = new MainScreen();
+        mainScreen.createGUI();
         Server server = Server.getInstance();
         server.startServer();
 
