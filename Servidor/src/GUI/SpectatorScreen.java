@@ -6,10 +6,13 @@ import javax.swing.*;
         import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import static App.Main.mainFrame;
+
 public class SpectatorScreen extends TemplateScreen {
 
     private final JPanel previousLeftPanel;
     private final JPanel previousRightPanel;
+
 
     public SpectatorScreen(JPanel leftPanel, JPanel rightPanel) {
         previousLeftPanel = leftPanel;
@@ -61,18 +64,16 @@ public class SpectatorScreen extends TemplateScreen {
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Por ahora no hace nada el botón");
-                if (mainFrame != null) {
-                    mainFrame.remove(leftPanel);
-                    mainFrame.remove(rightPanel);
-                    mainFrame.dispose();   // destroys native resources
-                }
+                System.out.println("Volviendo a Inicio");
 
-                leftPanel = null;
-                rightPanel = null;
-                mainFrame = null;
-                previousLeftPanel.setVisible(true);
-                previousRightPanel.setVisible(true);
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                mainFrame.add(previousLeftPanel, BorderLayout.WEST);
+                mainFrame.add(previousRightPanel, BorderLayout.CENTER);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
             }
         });
 

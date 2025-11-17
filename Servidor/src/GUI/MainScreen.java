@@ -1,10 +1,11 @@
 package GUI;
 
-import javax.print.attribute.standard.JobHoldUntil;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import static App.Main.mainFrame;
 
 public class MainScreen extends TemplateScreen {
 
@@ -49,7 +50,13 @@ public class MainScreen extends TemplateScreen {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("pantalla nuevo juego");
 
-                NewGameScreen screen = new NewGameScreen(leftPanel, rightPanel);
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                new NewGameScreen(leftPanel, rightPanel);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
 //                server.addSubscriber();
             }
         });
@@ -57,9 +64,16 @@ public class MainScreen extends TemplateScreen {
         btnSpectate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Por ahora no hace nada el botón");
+                System.out.println("pantalla espectador");
 
-                SpectatorScreen screen = new SpectatorScreen(leftPanel, rightPanel);
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                new SpectatorScreen(leftPanel, rightPanel);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
+
 //                server.addSubscriber();
             }
         });
@@ -67,8 +81,15 @@ public class MainScreen extends TemplateScreen {
         btnAdmin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Por ahora no hace nada el botón");
-                AdminPanel screen = new AdminPanel(leftPanel, rightPanel);
+                System.out.println("pantalla espectador");
+
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                new AdminScreen(leftPanel, rightPanel);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
 //                server.addSubscriber();
             }
         });

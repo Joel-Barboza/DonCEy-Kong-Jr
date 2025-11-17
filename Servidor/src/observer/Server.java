@@ -19,7 +19,7 @@ public class Server {
     //-----------------------------------------------------
     //                 Singleton server
     //-----------------------------------------------------
-    private Server() {
+    public Server() {
         System.out.println("Iniciando server");
         isRunning = false;
     }

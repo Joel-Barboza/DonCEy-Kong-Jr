@@ -1,14 +1,22 @@
 package GUI;
 
+import observer.Player;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static App.Main.mainFrame;
+import static App.Main.server;
+
 
 public class NewGameScreen extends TemplateScreen {
 
     private final JPanel previousLeftPanel;
     private final JPanel previousRightPanel;
+    private JTextField textField;
+    private JButton btnStart;
+
 
     public NewGameScreen (JPanel leftPanel, JPanel rightPanel) {
         previousLeftPanel = leftPanel;
@@ -26,7 +34,7 @@ public class NewGameScreen extends TemplateScreen {
         Dimension buttonSize = new Dimension(220, 50);         // fixed button size
 
         // Create buttons
-        JButton btnStart = new JButton("Iniciar");
+        btnStart = new JButton("Iniciar");
         JButton btnBack = new JButton("Volver");
 
         JButton[] buttons = {btnStart, btnBack};
@@ -50,28 +58,28 @@ public class NewGameScreen extends TemplateScreen {
         btnStart.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("pantalla nuevo juego");
+                System.out.println("Iniciooooooo");
 
-//                NewGameScreen screen = new NewGameScreen(leftPanel, rightPanel);
-//                server.addSubscriber();
+                Player player = new Player();
+                System.out.println(player.getClass());
+
+                server.addSubscriber(player);
             }
         });
 
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Por ahora no hace nada el botón");
-                if (mainFrame != null) {
-                    mainFrame.remove(leftPanel);
-                    mainFrame.remove(rightPanel);
-                    mainFrame.dispose();   // destroys native resources
-                }
+                System.out.println("Volviendo a Inicio");
 
-                leftPanel = null;
-                rightPanel = null;
-                mainFrame = null;
-                previousLeftPanel.setVisible(true);
-                previousRightPanel.setVisible(true);
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                mainFrame.add(previousLeftPanel, BorderLayout.WEST);
+                mainFrame.add(previousRightPanel, BorderLayout.CENTER);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
             }
         });
 
@@ -79,20 +87,35 @@ public class NewGameScreen extends TemplateScreen {
     }
 
     protected void createRightPanelContent() {
-//        ImageIcon icon = new ImageIcon("src/GUI/resources/main_screen_img.png");
-//        Image original = icon.getImage();
-//        Image scaled = original.getScaledInstance(
-//                original.getWidth(icon.getImageObserver())/2,
-//                original.getHeight(icon.getImageObserver())/2, Image.SCALE_SMOOTH);
-//        ImageIcon scaledIcon = new ImageIcon(scaled);
-//
-//        JLabel imgLabel = new JLabel(scaledIcon, SwingConstants.CENTER);
-//        imgLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-//        imgLabel.setForeground(Color.WHITE);
-//
-//        rightPanel.add(imgLabel, BorderLayout.CENTER);
 
+        rightPanel.setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = GridBagConstraints.RELATIVE;
+        gbc.insets = new Insets(15, 0, 15, 0);
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        JLabel labelInsertName = new JLabel("Ingrese el nombre del jugador:");
+        labelInsertName.setFont(new Font("Arial", Font.BOLD, 18));
+        labelInsertName.setForeground(Color.WHITE);
+
+        textField = new JTextField();
+        textField.setPreferredSize(new Dimension(250, 40));
+        textField.setBackground(YELLOW);
+        textField.setForeground(Color.BLACK);
+        textField.setFont(new Font("Arial", Font.BOLD, 18));
+        textField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        textField.setCaretColor(Color.BLACK);
+
+        textField.addActionListener(e -> btnStart.doClick());
+
+
+        rightPanel.add(labelInsertName, gbc);
+        rightPanel.add(textField, gbc);
     }
+
+
 
 
 

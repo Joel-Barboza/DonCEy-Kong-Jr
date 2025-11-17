@@ -4,13 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static App.Main.mainFrame;
 
-public class AdminPanel extends TemplateScreen {
+public class AdminScreen extends TemplateScreen {
 
     private final JPanel previousLeftPanel;
     private final JPanel previousRightPanel;
 
-    public AdminPanel (JPanel leftPanel, JPanel rightPanel) {
+    public AdminScreen(JPanel leftPanel, JPanel rightPanel) {
         previousLeftPanel = leftPanel;
         previousRightPanel = rightPanel;
     }
@@ -61,17 +62,15 @@ public class AdminPanel extends TemplateScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Volviendo a Inicio");
-                if (mainFrame != null) {
-                    mainFrame.remove(leftPanel);
-                    mainFrame.remove(rightPanel);
-                    mainFrame.dispose();   // destroys native resources
-                }
 
-                leftPanel = null;
-                rightPanel = null;
-                mainFrame = null;
-                previousLeftPanel.setVisible(true);
-                previousRightPanel.setVisible(true);
+                mainFrame.remove(leftPanel);
+                mainFrame.remove(rightPanel);
+
+                mainFrame.add(previousLeftPanel, BorderLayout.WEST);
+                mainFrame.add(previousRightPanel, BorderLayout.CENTER);
+
+                mainFrame.revalidate();
+                mainFrame.repaint();
             }
         });
 
