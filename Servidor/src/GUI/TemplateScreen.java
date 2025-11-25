@@ -1,10 +1,8 @@
 package GUI;
 
-import javax.print.attribute.standard.JobHoldUntil;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import static App.Main.mainFrame;
 
 abstract class TemplateScreen {
@@ -14,6 +12,8 @@ abstract class TemplateScreen {
     protected final Color YELLOW = new Color(255, 163, 0);
     protected final Color BLUE = new Color(0, 104, 163);
     protected final Color RED = new Color(251, 0, 0);
+    protected final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 20);
+    protected final Dimension BUTTON_SIZE = new Dimension(220, 50);
 
     protected JPanel leftPanel = null;
     protected JPanel rightPanel = null;
@@ -58,6 +58,15 @@ abstract class TemplateScreen {
         createRightPanelContent();
     }
 
+    public void setButtonStyle(JButton button) {
+        button.setBackground(YELLOW);                            // custom background color
+        button.setFont(BUTTON_FONT);                              // bold, large font
+        button.setPreferredSize(BUTTON_SIZE);                     // enforce size
+        button.setMaximumSize(BUTTON_SIZE);                       // required for BoxLayout
+        button.setForeground(Color.BLACK);                       // black text
+        button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // 2px border
+        button.setFocusable(false);
+    }
 
     protected abstract JPanel createLeftPanelButtons();
 

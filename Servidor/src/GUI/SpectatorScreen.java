@@ -1,22 +1,29 @@
 
 package GUI;
 
+import observer.Subscriber;
+import observer.SubscriberType;
+
 import javax.swing.*;
         import java.awt.*;
         import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import static App.Main.mainFrame;
+import static App.Main.server;
 
 public class SpectatorScreen extends TemplateScreen {
 
     private final JPanel previousLeftPanel;
     private final JPanel previousRightPanel;
+    private Timer subscriberRefreshTimer;
 
 
     public SpectatorScreen(JPanel leftPanel, JPanel rightPanel) {
         previousLeftPanel = leftPanel;
         previousRightPanel = rightPanel;
+        startRefreshing();
     }
 
     protected JPanel createLeftPanelButtons() {
@@ -25,9 +32,6 @@ public class SpectatorScreen extends TemplateScreen {
         buttonContainer.setOpaque(false);          // keep background color from parent
         buttonContainer.setLayout(new BoxLayout(buttonContainer, BoxLayout.Y_AXIS));
 
-        // Button style
-        Font buttonFont = new Font("Arial", Font.BOLD, 20);    // bigger, bold text
-        Dimension buttonSize = new Dimension(220, 50);         // fixed button size
 
         // Create buttons
         JButton btnStart = new JButton("Ver");
@@ -36,13 +40,7 @@ public class SpectatorScreen extends TemplateScreen {
         JButton[] buttons = {btnStart, btnBack};
 
         for (JButton b : buttons) {
-            b.setBackground(YELLOW);                            // custom background color
-            b.setFont(buttonFont);                              // bold, large font
-            b.setPreferredSize(buttonSize);                     // enforce size
-            b.setMaximumSize(buttonSize);                       // required for BoxLayout
-            b.setForeground(Color.BLACK);                       // black text
-            b.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // 2px border
-            b.setFocusable(false);                              // removes focus outline
+            setButtonStyle(b);
         }
 
         // Add buttons with spacing between them
@@ -66,6 +64,11 @@ public class SpectatorScreen extends TemplateScreen {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Volviendo a Inicio");
 
+                // Stops refreshing when leaving this screen
+                if (subscriberRefreshTimer != null) {
+                    subscriberRefreshTimer.stop();
+                }
+
                 mainFrame.remove(leftPanel);
                 mainFrame.remove(rightPanel);
 
@@ -81,20 +84,66 @@ public class SpectatorScreen extends TemplateScreen {
     }
 
     protected void createRightPanelContent() {
-//        ImageIcon icon = new ImageIcon("src/GUI/resources/main_screen_img.png");
-//        Image original = icon.getImage();
-//        Image scaled = original.getScaledInstance(
-//                original.getWidth(icon.getImageObserver())/2,
-//                original.getHeight(icon.getImageObserver())/2, Image.SCALE_SMOOTH);
-//        ImageIcon scaledIcon = new ImageIcon(scaled);
-//
-//        JLabel imgLabel = new JLabel(scaledIcon, SwingConstants.CENTER);
-//        imgLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-//        imgLabel.setForeground(Color.WHITE);
-//
-//        rightPanel.add(imgLabel, BorderLayout.CENTER);
 
+        // Panel that will contain the subscriber items
+        JPanel listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBackground(BLUE);
+
+        ArrayList<Subscriber> subscriberArrayList = server.getSubsList();
+
+        subscriberArrayList.forEach(subscriber -> {
+            if (subscriber.getType() == SubscriberType.PLAYER) {
+
+                JButton button = new JButton(subscriber.getName());
+                button.setBackground(YELLOW);
+                button.setFont(BUTTON_FONT);
+                button.setPreferredSize(BUTTON_SIZE);
+                button.setMaximumSize(BUTTON_SIZE);
+                button.setForeground(Color.BLACK);
+                button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+                button.setFocusable(false);
+
+
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("Espectando a: " + subscriber.getName());
+
+
+                    }
+                });
+
+                // Add some spacing between buttons
+                listPanel.add(Box.createVerticalStrut(8));
+                listPanel.add(button);
+            }
+        });
+
+        // Make list scrollable
+        JScrollPane scrollPane = new JScrollPane(listPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        rightPanel.setLayout(new BorderLayout());
+        rightPanel.add(scrollPane, BorderLayout.CENTER);
     }
+    private void startRefreshing() {
+        subscriberRefreshTimer = new Timer(1000, e -> refreshSubscribers());
+        subscriberRefreshTimer.start();
+    }
+
+    private void refreshSubscribers() {
+        rightPanel.removeAll();        // Clear old content
+        createRightPanelContent();     // Rebuild the subscriber list
+        rightPanel.revalidate();
+        rightPanel.repaint();
+    }
+
+
+
+
 
 
 

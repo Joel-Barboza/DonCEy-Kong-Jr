@@ -8,18 +8,20 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Player implements Subscriber {
-
+    private final SubscriberType type = SubscriberType.PLAYER;
     private final String name;
     private final Socket socket;
     private final BufferedReader reader;
     private final PrintWriter writer;
 
-    public Player(String name, Socket socket) throws IOException {
+    public Player(String name, Socket socket, BufferedReader reader,PrintWriter writer) throws IOException {
         this.name = name;
         this.socket = socket;
 
-        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.writer = new PrintWriter(socket.getOutputStream(), true);
+//        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//        this.writer = new PrintWriter(socket.getOutputStream(), true);
+        this.reader = reader;
+        this.writer = writer;
     }
 
     @Override
@@ -33,6 +35,11 @@ public class Player implements Subscriber {
 
     @Override
     public BufferedReader getReader() { return reader; }
+
+    @Override
+    public SubscriberType getType() {
+        return type;
+    }
 }
 
 

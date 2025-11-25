@@ -7,9 +7,13 @@
 #include <SDL3/SDL.h>
 
 #include "cjson/cJSON.h"
+#include "widgets/fruit.h"
+#include "constants.h"
 
-#define PORT 8080
-#define BUFFER_SIZE 1024
+
+extern SDL_Renderer* renderer;
+extern Fruit fruits[MAX_FRUITS];
+extern int fruit_count;
 
 static SOCKET global_socket = INVALID_SOCKET;
 int connected = 0;
@@ -113,14 +117,12 @@ int is_connected() {
     return 1;
 }
 
-// Helper function to send JSON data
-int send_json_message(const char *type, const char *value) {
+int send_subscriber_info(const char *type, const char *name) {
     cJSON *json = cJSON_CreateObject();
-    if (!json) {
-        return -1;
-    }
+    if (!json) return -1;
 
-    cJSON_AddStringToObject(json, type, value);
+    cJSON_AddStringToObject(json, "type", type);
+    cJSON_AddStringToObject(json, "name", name);
 
     char *json_str = cJSON_PrintUnformatted(json);
     if (!json_str) {
@@ -131,9 +133,9 @@ int send_json_message(const char *type, const char *value) {
     int result = send_message(json_str);
     free(json_str);
     cJSON_Delete(json);
-
     return result;
 }
+
 
 // Updated connect_to_server function that uses the IP parameter
 int connect_to_server(SOCKET *sock, const char *ip, int port) {
@@ -155,6 +157,52 @@ int connect_to_server(SOCKET *sock, const char *ip, int port) {
     connected = 1;
     return 0;
 }
+
+
+// returns true if parsing was successful
+bool fruit_JSON(char* json, int* type, int *x, int *y, int *w, int *h) {
+    cJSON *parsed_json = cJSON_Parse(json);
+    if (!parsed_json) return false;
+
+    cJSON *rect = cJSON_GetObjectItemCaseSensitive(parsed_json, "rectangle");
+    if (!rect) {
+        cJSON_Delete(parsed_json);
+        return false;
+    }
+
+    cJSON *jtype = cJSON_GetObjectItemCaseSensitive(rect, "type");
+    cJSON *jx = cJSON_GetObjectItemCaseSensitive(rect, "x");
+    cJSON *jy = cJSON_GetObjectItemCaseSensitive(rect, "y");
+    cJSON *jw = cJSON_GetObjectItemCaseSensitive(rect, "width");
+    cJSON *jh = cJSON_GetObjectItemCaseSensitive(rect, "height");
+
+    if (!cJSON_IsNumber(jx) || !cJSON_IsNumber(jy) ||
+        !cJSON_IsNumber(jw) || !cJSON_IsNumber(jh)) {
+
+        cJSON_Delete(parsed_json);
+        return false;
+        }
+
+    *type = jtype->valueint;
+    *x = jx->valueint;
+    *y = jy->valueint;
+    *w = jw->valueint;
+    *h = jh->valueint;
+
+    cJSON_Delete(parsed_json);
+    return true;
+}
+
+
+void add_fruit(int type, int x, int y) {
+    if (fruit_count >= MAX_FRUITS) return;
+
+    fruits[fruit_count] = create_fruit(type, x, y);
+    fruit_count++;
+}
+
+
+
 
 int socket_thread(void *data) {
     char *player_name = (char *)data;
@@ -195,7 +243,7 @@ int socket_thread(void *data) {
 
     // Send player name as JSON
     if (player_name && strlen(player_name) > 0) {
-        send_json_message("name", player_name);
+        send_subscriber_info("PLAYER", player_name);
     }
 
     char buffer[BUFFER_SIZE] = {0};
@@ -213,6 +261,22 @@ int socket_thread(void *data) {
         valread = receive_message(buffer, BUFFER_SIZE, 0); // Non-blocking
         if (valread > 0) {
             printf("Servidor: %s\n", buffer);
+
+            int type, x, y, w, h;
+
+            // const char* json = "{\"rectangle\":{\"x\":80,\"width\":6,\"y\":78,\"height\":300}}";
+
+            if (fruit_JSON(buffer, &type, &x, &y, &w, &h)) {
+                printf("Rectangle: x=%d y=%d w=%d h=%d\n", x, y, w, h);
+
+                // Fruit fruit = create_fruit(type, x, y);
+                // draw_fruit(&fruit);
+                add_fruit(type, x, y);
+                // SDL_RenderPresent(renderer);
+            } else {
+                printf("Invalid JSON\n");
+            }
+
             // Handle game state updates here
         } else if (valread < 0) {
             break; // Connection error
@@ -238,6 +302,8 @@ int socket_thread(void *data) {
     connected = 0;
     return 0;
 }
+
+
 
 // Updated retry_connection to use a specific IP
 int retry_connection(const char *ip) {

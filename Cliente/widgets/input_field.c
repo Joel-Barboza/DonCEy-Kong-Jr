@@ -5,6 +5,8 @@
 #include "input_field.h"
 #include <string.h>
 
+extern SDL_Renderer* renderer;
+
 InputField create_input_field(float x, float y, float w, float h, TTF_Font *font) {
     InputField field;
     field.rect = (SDL_FRect){x, y, w, h};
@@ -20,7 +22,7 @@ InputField create_input_field(float x, float y, float w, float h, TTF_Font *font
     return field;
 }
 
-void draw_input_field(SDL_Renderer *renderer, InputField *field) {
+void draw_input_field(InputField *field) {
     // Draw background
     SDL_SetRenderDrawColor(renderer,
         field->background_color.r,

@@ -3,6 +3,9 @@ package observer;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.json.JSONObject;
 
 public class Server {
@@ -132,25 +135,29 @@ public class Server {
 //    }
 
     private void handleClient(Socket clientSocket) {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
-            out.println("Bienvenido al servidor! Escribe 'quit' para salir");
+            writer.println("Bienvenido al servidor! Escribe 'quit' para salir");
 
             String inputLine;
-            while ((inputLine = in.readLine()) != null) {
+            while ((inputLine = reader.readLine()) != null) {
                 System.out.println("Cliente dice: " + inputLine);
                 JSONObject obj = new JSONObject(inputLine);
 
-                String name = obj.getString("name");
-                System.out.println("Name = " + name);
+                if (obj.has("name") && Objects.equals(obj.getString("type"), "PLAYER")) {
+                    String name = obj.getString("name");
+                    System.out.println("Name = " + name);
+                    Player player = new Player(name, clientSocket, reader, writer);
+                    subscribers.add(player);
+                }
 
                 if ("quit".equalsIgnoreCase(inputLine)) {
-                    out.println("Adios!");
+                    writer.println("Adios!");
                     break;
                 }
 
-                out.println("Servidor recibió: " + inputLine);
+                writer.println("Servidor recibió: " + inputLine);
             }
 
         } catch (IOException e) {
@@ -158,6 +165,9 @@ public class Server {
         }
     }
 
+    public ArrayList<Subscriber> getSubsList() {
+        return subscribers;
+    }
 
 
 //    public static void main(String[] args) {

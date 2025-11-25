@@ -4,9 +4,10 @@
 #include "socket_thread.h"
 #include <stdio.h>
 #include <string.h>
-#include "cjson/cJSON.h"
 #include "widgets/button.h"
+#include "widgets/fruit.h"
 #include "widgets/input_field.h"
+#include "constants.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -22,19 +23,22 @@
     #include <arpa/inet.h>
 #endif
 
-#define PORT 8080
-#define BUFFER_SIZE 1024
+
 extern int connected;
+SDL_Renderer* renderer;
 
 
 // -----------------------------
 // Nivel: plataformas y lianas
 // -----------------------------
-#define NUM_PLATFORMS 10
-#define NUM_VINES 9
+
 
 SDL_FRect platforms[NUM_PLATFORMS];
 SDL_FRect vines[NUM_VINES];
+
+
+Fruit fruits[MAX_FRUITS];
+int fruit_count = 0;
 
 // -----------------------------
 // Mono (personaje)
@@ -69,15 +73,15 @@ void initialize_level_elements() {
     platforms[7] = (SDL_FRect){ 510.0f,  460.0f, 100.0f, 18.0f };
     platforms[8] = (SDL_FRect){ 670.0f,  440.0f, 100.0f, 18.0f };
 
-    vines[0]  = (SDL_FRect){  680.0f,  30.0f, 6.0f,  380.0f };
-    vines[1]  = (SDL_FRect){ 750.0f,  30.0f, 6.0f,  380.0f };
+    vines[0]  = (SDL_FRect){  80.0f,  78.0f, 6.0f,  300.0f };
+    vines[1]  = (SDL_FRect){ 150.0f,  78.0f, 6.0f,  300.0f };
     vines[2]  = (SDL_FRect){ 280.0f,  200.0f, 6.0f,  200.0f };
-    vines[3]  = (SDL_FRect){  80.0f,  78.0f, 6.0f,  300.0f };
-    vines[4]  = (SDL_FRect){ 150.0f,  78.0f, 6.0f,  300.0f };
-    vines[5]  = (SDL_FRect){ 430.0f,  98.0f, 6.0f,  300.0f };
-    vines[6]  = (SDL_FRect){ 480.0f,  98.0f, 6.0f,  200.0f };
-    vines[7]  = (SDL_FRect){ 590.0f,  98.0f, 6.0f,  260.0f };
-    vines[8]  = (SDL_FRect){ 530.0f,  98.0f, 6.0f,  300.0f };
+    vines[3]  = (SDL_FRect){ 430.0f,  98.0f, 6.0f,  300.0f };
+    vines[4]  = (SDL_FRect){ 480.0f,  98.0f, 6.0f,  200.0f };
+    vines[5]  = (SDL_FRect){ 530.0f,  98.0f, 6.0f,  300.0f };
+    vines[6]  = (SDL_FRect){ 590.0f,  98.0f, 6.0f,  260.0f };
+    vines[7]  = (SDL_FRect){  680.0f,  30.0f, 6.0f,  380.0f };
+    vines[8]  = (SDL_FRect){ 750.0f,  30.0f, 6.0f,  380.0f };
 }
 
 void initialize_monkey() {
@@ -289,7 +293,7 @@ void handle_input(const _Bool* keyboard_state) {
     }
 }
 
-void draw_monkey(SDL_Renderer* renderer) {
+void draw_monkey() {
     // Si está en liana, cambiar color para indicarlo
     if (monkey.isOnVine) {
         SDL_SetRenderDrawColor(renderer, 100, 50, 10, 255); // Marrón más oscuro
@@ -324,7 +328,7 @@ void draw_monkey(SDL_Renderer* renderer) {
 }
 
 // Dibuja una "textura" simple de plataforma estilo arcade (base + borde)
-void draw_platform_rect(SDL_Renderer* renderer, SDL_FRect r) {
+void draw_platform_rect(SDL_FRect r) {
     // base marrón
     SDL_SetRenderDrawColor(renderer, 150, 70, 30, 255);
     SDL_RenderFillRect(renderer, &r);
@@ -343,13 +347,13 @@ void draw_platform_rect(SDL_Renderer* renderer, SDL_FRect r) {
     }
 }
 
-void draw_platforms(SDL_Renderer* renderer) {
+void draw_platforms() {
     for (int i = 0; i < NUM_PLATFORMS; ++i) {
-        draw_platform_rect(renderer, platforms[i]);
+        draw_platform_rect(platforms[i]);
     }
 }
 
-void draw_vines(SDL_Renderer* renderer) {
+void draw_vines() {
     for (int i = 0; i < NUM_VINES; ++i) {
         SDL_FRect v = vines[i];
 
@@ -378,7 +382,21 @@ void draw_vines(SDL_Renderer* renderer) {
 }
 
 
-void draw_game (SDL_Renderer *renderer, const _Bool* keyboard_state) {
+void draw_fruits() {
+    for (int i = 0; i < fruit_count; ++i) {
+        Fruit fruit = fruits[i];
+        draw_fruit(&fruit);
+    }
+};
+
+void destroy_fruits() {
+    for (int i = 0; i < fruit_count; ++i) {
+        Fruit fruit = fruits[i];
+        destroy_fruit(&fruit);
+    }
+};
+
+void draw_game (const _Bool* keyboard_state) {
     // Manejar entrada del teclado
     handle_input(keyboard_state);
 
@@ -390,25 +408,48 @@ void draw_game (SDL_Renderer *renderer, const _Bool* keyboard_state) {
     SDL_RenderClear(renderer);
 
     // Dibujar elementos del nivel
-    draw_platforms(renderer);
-    draw_vines(renderer);
+    draw_platforms();
+    draw_vines();
 
     // Dibujar el mono
-    draw_monkey(renderer);
+    draw_monkey();
 
     // Dibujar botón
     // draw_button(renderer, &btn);
+    draw_fruits();
 
     SDL_RenderPresent(renderer);
 
     SDL_Delay(16); // ~60 FPS
 }
 
-void draw_connect (SDL_Renderer *renderer, Button *btn, InputField *input_field) {
+void draw_connect (Button *btn, InputField *input_field) {
 
-    draw_input_field(renderer, input_field);
-    draw_button(renderer, btn);
+    draw_input_field(input_field);
+    draw_button(btn);
     SDL_RenderPresent(renderer);
+}
+
+void handle_connection(InputField input_field) {
+    if (!connected) {
+        SDL_Log("Intentando conectar...");
+        SDL_Log("Nombre Jugador: %s", input_field.text);
+
+        char *player_name = SDL_strdup(input_field.text);
+        if (!player_name) {
+            SDL_Log("Error copying player name");
+            return;
+        }
+
+        SDL_Thread *thread = SDL_CreateThread(socket_thread, "SocketThread", (void*)player_name);
+        if (!thread) {
+            SDL_Log("Error creating socket thread");
+            SDL_free(player_name);
+        }
+    } else {
+        SDL_Log("Reintentando conexión...");
+        retry_connection("127.0.0.1");
+    }
 }
 
 // ---------------------------
@@ -434,7 +475,7 @@ int window() {
         return -1;
     }
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
+    renderer = SDL_CreateRenderer(window, NULL);
     if (!renderer) {
         SDL_Log("Renderer create failed: %s", SDL_GetError());
         SDL_DestroyWindow(window);
@@ -451,7 +492,8 @@ int window() {
     }
 
     InputField input_field = create_input_field(300, 200, 200, 36, font ? font : NULL);
-    Button btn = create_button(renderer, 300, 250, 200, 36, "Conectar", font ? font : NULL);
+    Button btn = create_button(300, 250, 200, 36, "Conectar", font ? font : NULL);
+    // Fruit fruit = create_banana(300, 250);
 
     initialize_level_elements();
     initialize_monkey();
@@ -488,34 +530,13 @@ int window() {
                 }
                 else if (e.key.key == SDLK_RETURN && input_field.is_active) {
                     input_field.is_active = 0;
+                    handle_connection(input_field);
                 }
             }
 
-            // Handle button events - UPDATE FOR SDL3
+            // Handle button events
             if (button_handle_event(&btn, &e)) {
-                if (!connected) {
-                    SDL_Log("Intentando conectar...");
-                    SDL_Log("Nombre Jugador: %s", input_field.text);
-
-                    // Make a copy of the player name to avoid thread issues
-                    char *player_name = SDL_strdup(input_field.text);
-                    if (!player_name) {
-                        SDL_Log("Error copying player name");
-                        return 0; // or continue
-                    }
-
-                    // Start the socket thread with the player name
-                    SDL_Thread *thread = SDL_CreateThread(socket_thread, "SocketThread", (void*)player_name);
-                    if (!thread) {
-                        SDL_Log("Error creating socket thread");
-                        SDL_free(player_name);
-                    }
-                    // Don't send_message here - the socket thread should handle initial communication
-
-                } else {
-                    SDL_Log("Reintentando conexión...");
-                    retry_connection("127.0.0.1"); // Or use a stored IP
-                }
+                handle_connection(input_field);
             }
         }
 
@@ -524,9 +545,9 @@ int window() {
         SDL_RenderClear(renderer);
 
         if (!connected) {
-            draw_connect(renderer, &btn, &input_field);
+            draw_connect(&btn, &input_field);
         } else {
-            draw_game(renderer, keyboard_state);
+            draw_game(keyboard_state);
         }
 
         // SDL_RenderPresent(renderer);
@@ -535,6 +556,7 @@ int window() {
     SDL_StopTextInput(window);
     destroy_input_field(&input_field);
     destroy_button(&btn);
+    destroy_fruits();
     if (font) TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyRenderer(renderer);

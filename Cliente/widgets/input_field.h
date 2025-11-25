@@ -24,7 +24,7 @@ typedef struct {
 } InputField;
 
 InputField create_input_field(float x, float y, float w, float h, TTF_Font *font);
-void draw_input_field(SDL_Renderer *renderer, InputField *field);
+void draw_input_field(InputField *field);
 void handle_input_field_click(InputField *field, float mouse_x, float mouse_y);
 void handle_input_field_text(InputField *field, const char *text);
 void handle_input_field_backspace(InputField *field);

@@ -20,8 +20,8 @@ typedef struct {
     SDL_FRect textRect;
 } Button;
 
-Button create_button(SDL_Renderer *renderer, int x, int y, int w, int h, const char *text, TTF_Font *font);
-void draw_button(SDL_Renderer *renderer, Button *btn);
+Button create_button(int x, int y, int w, int h, const char *text, TTF_Font *font);
+void draw_button(Button *btn);
 int button_handle_event(Button *btn, SDL_Event *e);
 void destroy_button(Button *btn);
 

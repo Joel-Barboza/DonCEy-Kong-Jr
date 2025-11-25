@@ -3,7 +3,9 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string.h>
 
-Button create_button(SDL_Renderer *renderer, int x, int y, int w, int h, const char *text, TTF_Font *font) {
+extern SDL_Renderer* renderer;
+
+Button create_button(int x, int y, int w, int h, const char *text, TTF_Font *font) {
     Button b;
     b.rect = (SDL_FRect){x, y, w, h};
     b.color = (SDL_Color){100, 149, 237, 255};  // cornflower blue
@@ -32,7 +34,7 @@ Button create_button(SDL_Renderer *renderer, int x, int y, int w, int h, const c
     return b;
 }
 
-void draw_button(SDL_Renderer *renderer, Button *btn) {
+void draw_button(Button *btn) {
     SDL_SetRenderDrawColor(renderer,
         btn->hovered ? btn->hoverColor.r : btn->color.r,
         btn->hovered ? btn->hoverColor.g : btn->color.g,

@@ -30,13 +30,7 @@ public class MainScreen extends TemplateScreen {
         JButton[] buttons = { btnSpectate, btnAdmin };
 
         for (JButton b : buttons) {
-            b.setBackground(YELLOW);                            // custom background color
-            b.setFont(buttonFont);                              // bold, large font
-            b.setPreferredSize(buttonSize);                     // enforce size
-            b.setMaximumSize(buttonSize);                       // required for BoxLayout
-            b.setForeground(Color.BLACK);                       // black text
-            b.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // 2px border
-            b.setFocusable(false);                              // removes focus outline
+            setButtonStyle(b);
         }
 
         // Add buttons with spacing between them
@@ -83,7 +77,7 @@ public class MainScreen extends TemplateScreen {
         btnAdmin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("pantalla espectador");
+                System.out.println("pantalla Admin");
 
                 mainFrame.remove(leftPanel);
                 mainFrame.remove(rightPanel);
