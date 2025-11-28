@@ -28,7 +28,9 @@
 
 extern int connected;
 SDL_Renderer *renderer;
-
+int lives = 3;
+int game_over = 0;
+TTF_Font *lives_font = NULL;
 
 // -----------------------------
 // Nivel: plataformas y lianas
@@ -62,6 +64,36 @@ typedef struct {
 
 Monkey monkey;
 
+// Constantes de física
+const float GRAVITY = 0.5f;
+const float JUMP_FORCE = -10.0f;
+const float MOVE_SPEED = 3.0f;
+const float CLIMB_SPEED = 2.5f; // Nuevo: velocidad de escalada
+// Función para dibujar las vidas en pantalla
+// Función para dibujar las vidas en pantalla (sin TTF)
+void draw_lives() {
+    // Dibujar un rectángulo simple por cada vida
+    for (int i = 0; i < lives; i++) {
+        SDL_FRect life_rect = {10.0f + i * 30.0f, 550.0f, 20.0f, 20.0f};
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Rojo
+        SDL_RenderFillRect(renderer, &life_rect);
+    }
+}
+void lose_life() {
+    if (lives > 0) {
+        lives--;
+
+        // Efecto visual: parpadeo rojo
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
+        SDL_Delay(100);
+
+        if (lives <= 0) {
+            game_over = 1;
+        }
+    }
+}
 
 
 void initialize_level_elements() {
@@ -215,14 +247,20 @@ void update_monkey_physics() {
         monkey.currentVine = -1;
     }
     if (monkey.rect.y >= 500.0f) {
-        // Regresar a la posición inicial
-        monkey.rect.x = 50.0f;
-        monkey.rect.y = 470.0f;
-        monkey.velocityX = 0.0f;
-        monkey.velocityY = 0.0f;
-        monkey.isOnGround = 1;
-        monkey.isOnVine = 0;
-        monkey.currentVine = -1;
+        // El mono cayó - perder una vida
+        lose_life();
+
+        if (!game_over) {
+            // Solo reiniciar posición si el juego no ha terminado
+            monkey.rect.x = 50.0f;
+            monkey.rect.y = 470.0f;
+            monkey.velocityX = 0.0f;
+            monkey.velocityY = 0.0f;
+            monkey.isOnGround = 1;
+            monkey.isOnVine = 0;
+            monkey.currentVine = -1;
+        }
+        return;
     }
     // Física normal (cuando no está en liana)
 
@@ -650,6 +688,7 @@ void draw_game(const _Bool *keyboard_state) {
     // draw_button(renderer, &btn);
     draw_fruits();
     draw_crocodiles();
+    draw_lives();
 
     SDL_RenderPresent(renderer);
 
@@ -803,14 +842,6 @@ int window() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_Log("SDL init failed: %s", SDL_GetError());
         return -1;
-    }
-
-    if (!mv_mutex) {
-        mv_mutex = SDL_CreateMutex();
-        if (!mv_mutex) {
-            SDL_Log("Failed to create movement mutex: %s", SDL_GetError());
-            // handle error
-        }
     }
 
     if (TTF_Init() < 0) {
